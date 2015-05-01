@@ -11,6 +11,8 @@
  * CHANGELOG=(dd.mm.yyyy)===============================================
  *
  * 02.05.2015: - Fixed the String Replace function 'str_replace'
+ *             - Fixed bug in Text entry generation for schematics in case
+ *               of ">value" ">name" in symbol
  *
  * 14.02.2014: - Fix "Multiple contacts on pin, use contacts() instead" error in
  *               Eagle 6.0 (and later) when multiple pads are connected to same pin. (caspencer)
@@ -774,7 +776,8 @@ void write_kikad_text( UL_GATE G, int transX, int transY, int gatePos )
 
         }
 
-        if (T.value != ">NAME" && T.value != ">VALUE" )
+        if (T.value != ">NAME" && T.value != ">VALUE" && 
+	   T.value != ">value" && T.value != ">name")
             printf("T %d %d %d %.0f %d %d %d %s\n", orient, posX, posY,
                    fontSize, 0, gatePos, 0, textString );
     }
@@ -990,7 +993,8 @@ void write_kikad_def_alias( UL_DEVICE DEV, UL_GATE G, string symbolName, int cou
 
     G.symbol.texts(T)
     {
-        if ( T.value == ">VALUE" || T.value == ">NAME" )
+        if ( T.value == ">VALUE" || T.value == ">NAME" || 
+	    T.value == ">value" || T.value == ">name")
         {
             int transX = G.x / g_Fact;
             int transY = G.y / g_Fact;
@@ -1027,13 +1031,13 @@ void write_kikad_def_alias( UL_DEVICE DEV, UL_GATE G, string symbolName, int cou
                 break;
             }
 
-            if ( T.value == ">VALUE" )
+            if ( T.value == ">VALUE" || T.value == ">value" )
             {
                 name_X = T.x / g_Fact - transX + offset;
                 name_Y = T.y / g_Fact - transY;
             }
 
-            if ( T.value == ">NAME" )
+            if ( T.value == ">NAME" || T.value == ">name" )
             {
                 prefix_X = T.x / g_Fact - transX + offset;
                 prefix_Y = T.y / g_Fact - transY;
