@@ -16,3 +16,4 @@ Authors:
 - Jan Phillip Willmann (jantek.willmann at gmail.com)
 - Wawszczak
 - caspencer
+- boseji

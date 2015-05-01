@@ -1,4 +1,4 @@
-#usage "<b>KiCAD module exporting tool  version 0.9f (0.92)</b>\n"
+#usage "<b>KiCAD module exporting tool  version 0.9f (0.93)</b>\n"
         "<p>"
         "This ULP can exports Eagle CAD Package and Symbol contents into KiCAD lib and module format."
         "<p>"
@@ -6,8 +6,12 @@
         "<p>"
         "<author>Author: Dmitri N. Sytov sdn (at) openhardware.ru</author>"
         "<author>Author: juergen.messerer (at) freesurf.ch</author>"
+        "<author>Author: boseji (at) users.noreply.github.com </author>"
 /*
  * CHANGELOG=(dd.mm.yyyy)===============================================
+ *
+ * 02.05.2015: - Fixed the String Replace function 'str_replace'
+ *
  * 14.02.2014: - Fix "Multiple contacts on pin, use contacts() instead" error in
  *               Eagle 6.0 (and later) when multiple pads are connected to same pin. (caspencer)
  *             - Fix issue with incorrect smd/pad angles
@@ -50,6 +54,7 @@
  *             - Polygonal areas draws twice
  *           Thanks to:
  *             Biglacko <biglacko (at) startolj.hu>
+ *
 */
 
 /* ==========================================================================
@@ -57,7 +62,7 @@
  *          Version 2.
  * ==========================================================================*/
 
-real VERSION   = 0.92;
+real VERSION   = 0.93;
 
 int rect_conv  = 1; // many QFP-like packages use rectangles as a pin contour (too much segments in the ki-format)
 int poly_conv  = 1;
@@ -249,15 +254,17 @@ int issmd(UL_PACKAGE PAC)
 //------------------------------------------------------
 //Replaces all occurrences of a substring found within a string.
 //------------------------------------------------------
-string str_replace(string search, string replace, string subject)
+string str_replace(string subject, string search, string replace)
 {
     int lastpos = 0;
-    while (strstr(subject, search, lastpos) >= 0)
+    string sc = subject;
+    while (strstr(sc, search, lastpos) >= 0)
     {
-        int pos = strstr(subject, search, lastpos);
-        string before = strsub(subject, 0, pos);
-        string after = strsub(subject, pos + strlen(search));
-        subject = before + replace + after;
+        int pos = strstr(sc, search, lastpos);
+        string before = strsub(sc, 0, pos);
+        string after = strsub(sc, 
+	pos + strlen(search), strlen(search));
+        sc = before + replace + after;
         lastpos = pos + strlen(replace);
     }
     return subject;
