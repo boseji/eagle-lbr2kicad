@@ -13,6 +13,8 @@
  * 02.05.2015: - Fixed the String Replace function 'str_replace'
  *             - Fixed bug in Text entry generation for schematics in case
  *               of ">value" ">name" in symbol
+ *             - Added Description for the component as a field in the component
+ *             - Added Manufacturer, Notes and Manufacturer Number fields to sch component
  *
  * 14.02.2014: - Fix "Multiple contacts on pin, use contacts() instead" error in
  *               Eagle 6.0 (and later) when multiple pads are connected to same pin. (caspencer)
@@ -1129,6 +1131,8 @@ void write_kikad_lib( string fileName )
                     printf("# Dev Tech: %s\n", DEV.technologies);
                     printf("# Dev Prefix: %s\n", DEV.prefix);
                     printf("# Gate count = %d\n", countGates);
+		printf("# Description: %s\n", DEV.description );
+		printf("# Technologies: %s\n", DEV.activetechnology );
                     printf("#\n");
 
                     // check for missing prefix
@@ -1152,6 +1156,14 @@ void write_kikad_lib( string fileName )
                         {
                             // Write kicad alias entries
                             write_kikad_def_alias(DEV, G, nameString, gatePos );
+		        printf("F3 \"\" 0 0 60 H V C CNN\n");
+		        if ( strlen(DEV.description) == 0 )
+			printf("F4 \"NIL\" 0 0 60 H I C CNN \"Desc\"\n");
+		        else
+		          printf("F4 \"%s\" 0 0 60 H I C CNN \"Desc\"\n", DEV.description);
+                            printf("F5 \"NIL\" 0 0 60 H I C CNN \"MFG NO\"\n");
+                            printf("F6 \"NIL\" 0 0 60 H I C CNN \"MFR\"\n");
+                            printf("F7 \"NIL\" 0 0 60 H I C CNN \"Notes\"\n");
                             printf("DRAW\n");
                         }
 
