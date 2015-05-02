@@ -15,6 +15,7 @@
  *               of ">value" ">name" in symbol
  *             - Added Description for the component as a field in the component
  *             - Added Manufacturer, Notes and Manufacturer Number fields to sch component
+ *             - Fix for New line elimination in Names and description
  *
  * 14.02.2014: - Fix "Multiple contacts on pin, use contacts() instead" error in
  *               Eagle 6.0 (and later) when multiple pads are connected to same pin. (caspencer)
@@ -267,16 +268,37 @@ string str_replace(string subject, string search, string replace)
         int pos = strstr(sc, search, lastpos);
         string before = strsub(sc, 0, pos);
         string after = strsub(sc, 
-	pos + strlen(search), strlen(search));
+	pos + strlen(search));
         sc = before + replace + after;
         lastpos = pos + strlen(replace);
     }
-    return subject;
+    return sc;
 }
 
+string str_strip(string subject, char search)
+{
+    int last = 0;
+    string sc = subject;
+    while ( strchr(sc, search, last) > 0)
+    {
+         int pos = strchr(sc, search, last);
+         string before = strsub(sc, 0, pos);
+         string after = strsub(sc, 
+	pos + 1);
+         sc = before + after;
+         last = pos + 1;
+    }
+    return sc;
+}
 string escape_quotes(string input)
 {
     return str_replace(input, "\"", "\\\"");
+}
+string escape_newline(string input)
+{   
+    string result = str_strip(input, '\n');
+    result = str_strip(result, '\r');
+    return result;
 }
 
 //------------------------------------------------------
@@ -1109,8 +1131,9 @@ void write_kikad_lib( string fileName )
                         countGates++;
                     }
 
-                    string nameString   = DEV.name;
+                    string nameString   = escape_newline(DEV.name);
                     string prefixString = DEV.prefix;
+                    string description = escape_quotes(escape_newline(DEV.description));
                     string drawPinnumberStr  = "N";
                     string drawPinnameStr  = "N";
 
@@ -1123,7 +1146,7 @@ void write_kikad_lib( string fileName )
                     {
                         drawPinnameStr = "Y";
                     }
-
+		
                     printf("#\n");
                     printf("# Dev Name: %s\n", nameString);
                     if (DEV.package)
@@ -1131,7 +1154,7 @@ void write_kikad_lib( string fileName )
                     printf("# Dev Tech: %s\n", DEV.technologies);
                     printf("# Dev Prefix: %s\n", DEV.prefix);
                     printf("# Gate count = %d\n", countGates);
-		printf("# Description: %s\n", DEV.description );
+		printf("# Description: %s\n", description );
 		printf("# Technologies: %s\n", DEV.activetechnology );
                     printf("#\n");
 
@@ -1142,7 +1165,8 @@ void write_kikad_lib( string fileName )
                         g_missingPrefix = 1;
                     }
 
-                    printf("DEF %s %s %d %d %s %s %d %c %c\n", nameString, prefixString, 0, 40, drawPinnumberStr, drawPinnameStr, countGates, 'L', 'N');
+                    printf("DEF %s %s %d %d %s %s %d %c %c\n", nameString, prefixString, 0, 40, 
+			drawPinnumberStr, drawPinnameStr, countGates, 'L', 'N');
 
                     int gatePos = 0;
                     DEV.gates(G)
@@ -1157,10 +1181,10 @@ void write_kikad_lib( string fileName )
                             // Write kicad alias entries
                             write_kikad_def_alias(DEV, G, nameString, gatePos );
 		        printf("F3 \"\" 0 0 60 H V C CNN\n");
-		        if ( strlen(DEV.description) == 0 )
+		        if ( strlen(description) == 0 )
 			printf("F4 \"NIL\" 0 0 60 H I C CNN \"Desc\"\n");
 		        else
-		          printf("F4 \"%s\" 0 0 60 H I C CNN \"Desc\"\n", DEV.description);
+		          printf("F4 \"%s\" 0 0 60 H I C CNN \"Desc\"\n", description);
                             printf("F5 \"NIL\" 0 0 60 H I C CNN \"MFG NO\"\n");
                             printf("F6 \"NIL\" 0 0 60 H I C CNN \"MFR\"\n");
                             printf("F7 \"NIL\" 0 0 60 H I C CNN \"Notes\"\n");
